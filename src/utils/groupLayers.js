@@ -1,0 +1,176 @@
+// utils/groupLayers.js
+
+const serviceLayers = {
+  HVAC: [
+    "CEILING SUSPENDED UNIT",
+    "SPLIT UNIT",
+    "CASSETTE UNIT",
+    "OUTDOOR",
+
+    "WALL MOUNTED HI-WALL UNITS",
+    "Y-Joints",
+    "Remote controllers Corded",
+    "Remote controllers Non-corded",
+    "Central controller system",
+    "Voltage Stablizer",
+    "Refrigerant Piping",
+    "Drain Piping",
+    "Inline Fans",
+    "Propeller Fan",
+    "Exhaust Fans",
+    "Duct",
+    "Grills with VCD",
+    "Grills without VCD",
+    "Diffusers with VCD",
+    "Diffusers without VCD",
+    "Fresh Air Louvers",
+    "Air transfer door grill",
+    "Motorized Fire Dampers",
+    "Damper Actuator",
+    "Insulation",
+  ],
+  ELECTRICAL: [
+    "DISTRIBUTION BOARDS",
+    "LED BATTEN",
+    "LED BULKHEAD",
+    "Main LT Panel (MLP)",
+    "Main Distribution Board (MDB)",
+    "Essential Power Panel (EPP)",
+    "Emergency lighting panel (EMLP)",
+    "Air-condition Distribution Board (ACDB)",
+    "Water Pump Panel (WPP)",
+    "Fire Pump Panel (FPP)",
+    "Passenger Amenities Panel (PAP)",
+    "Escalator Power Panel (ESPP)",
+    "DG Set",
+    "UPS System",
+    "XLPE Power Cables",
+    "Cable trays",
+    "Conduits",
+    "Earthing Strips",
+    "Lightning Arresters",
+    "Switches",
+    "Sockets",
+    "Communication Cables",
+    "Recessed LED Panel Lights",
+    "LED Downlights",
+    "Wall-mounted LED Cylindrical Fixtures",
+    "LED Surface Mount Lights",
+    "LED Tube Light",
+    "LED Moisture-Proof Ceiling Lights",
+    "6A/10A 1-way Switch",
+    "6A/16A Socket with Switch",
+    "6A 2/3 Pin Socket",
+    "16A Power Socket with Indicator",
+    "Industrial Socket with MCB",
+    "3-pin or 5-pin Industrial Socket",
+    "RJ45 CAT-6 Socket",
+    "USB Charging Port",
+    "Mushroom Push Button",
+  ],
+  "FIRE FIGHTING": [
+    "HYDRANT MAIN FIRE PUMP",
+    "JOCKEY PUMP",
+    "PORTABLE FIRE EXTINGUISHERS",
+    "Sprinkler Main Fire Pumps",
+    "Fire Hose Cabinet",
+    "External hydrants/landing valves",
+    "Orifice plate",
+    "Rubber expansion joint",
+    "Y-strainer",
+    "Air release valve",
+    "Digital Pressure Gauge",
+    "Butterfly valve",
+    "Non Return valve",
+    "Digital pressure switches",
+    "Pressure switches",
+    "Pressure vessels",
+    "Four way fire brigade connection",
+    "Fire brigade inlet connection",
+    "Fire brigade draw out collecting",
+    "External GI Pipe",
+    "External DI Pipe",
+    "External CI Pipe",
+    "External MS Pipe",
+    "Internal GI Pipe",
+    "Internal DI Pipe",
+    "Internal CI Pipe",
+    "Internal MS Pipe",
+    "Butterfly valve",
+    "Non Return valve",
+    "Moterized Flow Switch",
+    "PENDENT SPRINKLER",
+    "UPRIGHT SPRINKLER",
+    "Flow Switch",
+    "Fire Extinguisher 4.5 kg. CO2 Type",
+    "Fire Extinguisher 9 liters water Co2 Type",
+    "Fire Extinguisher 9 liters Mechanical Foam type",
+    "Fire Extinguisher 22.5 kg. Capacity Co2 Type",
+  ],
+  PLUMBING: [
+    "BUTTERFLY VALVE",
+    "NON RETURN VALVE",
+    "GI Pipes",
+    "CPVC Pipes",
+    "uPVC Pipes",
+    "PPR Pipes",
+    "Ball Valves",
+    "Gate Valves",
+
+    "Pressure Reducing Valves",
+    "Water Meters",
+    "Float Valves",
+    "Air Release Valves",
+    "Insulation for hot water pipes",
+    "Water Storage Tanks",
+    "Wall-hung  WC",
+    "Floor-mounted WC",
+    "Urinals",
+    "Wash Basins",
+    "Kitchen Sinks",
+    "Health Faucets",
+    "Bib Cock",
+    "Pillar Cock",
+    "Angle Valve",
+    "Toilet Paper Holders",
+    "Soap Dispensers",
+    "Mirror",
+    "Sensor Taps",
+    "uPVC Pipes",
+    "SWR Pipes",
+    "CI Pipes",
+    "Floor Traps",
+    "Gully Traps",
+    "Cowl",
+    "Pipe Supports",
+    "Clamps",
+    "Hangers",
+    "Pipe Sleeves",
+    "Pipe Wrapping Tape",
+    "Sealant",
+  ],
+};
+
+const allBases = Array.from(new Set(Object.values(serviceLayers).flat()));
+
+/**
+ * Groups DXF entities by base names from predefined layers.
+ */
+export function groupLayers(entities) {
+  const grouped = {};
+
+  for (const entity of entities) {
+    const layer = entity.layer?.toUpperCase?.();
+    if (!layer) continue;
+
+    for (const base of allBases) {
+      if (layer.startsWith(base)) {
+        grouped[base] = grouped[base] || {};
+        grouped[base][layer] = (grouped[base][layer] || 0) + 1;
+        break;
+      }
+    }
+  }
+
+  return grouped;
+}

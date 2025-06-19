@@ -24,6 +24,9 @@ const qeSchema = new mongoose.Schema(
       required: true,
     },
     dxf_entities: { type: Object, default: null },
+    grouped_layers: { type: Object, default: {} },
+ // NEW FIELD: To store the refined, editable quantity data
+    extracted_quantities_data: { type: Array, default: [] }, // NEW
   },
   { timestamps: true }
 );
