@@ -5,38 +5,40 @@ import DxfParser from "dxf-parser";
 
 export const createQeProject = async (req, res) => {
   try {
-    const { user, name, service, building_type, level } = req.body;
+    const { user, name, service, building_type, sub_building_type, level } =
+      req.body;
 
-        // Path to the uploaded file
-        const dxfFilePath = req.file
-          ? path.join(req.file.destination, req.file.filename)
-          : null;
-    
-        let parsedData = null;
-    
-        if (dxfFilePath) {
-          const parser = new DxfParser();
-          const dxfContents = fs.readFileSync(dxfFilePath, "utf-8");
-          try {
-            parsedData = parser.parseSync(dxfContents);
-          } catch (parseErr) {
-            return res
-              .status(400)
-              .json({ error: "Invalid DXF file", details: parseErr.message });
-          }
-        }
+    // Path to the uploaded file
+    const dxfFilePath = req.file
+      ? path.join(req.file.destination, req.file.filename)
+      : null;
+
+    let parsedData = null;
+
+    if (dxfFilePath) {
+      const parser = new DxfParser();
+      const dxfContents = fs.readFileSync(dxfFilePath, "utf-8");
+      try {
+        parsedData = parser.parseSync(dxfContents);
+      } catch (parseErr) {
+        return res
+          .status(400)
+          .json({ error: "Invalid DXF file", details: parseErr.message });
+      }
+    }
 
     const newQEProjectData = new qeProject({
       user,
       name,
       service,
       building_type,
+      sub_building_type,
       level,
-      dxf_entities:parsedData.entities
+      dxf_entities: parsedData.entities,
     });
 
-    const newQEProject = new qeProject(newQEProjectData)
-    await newQEProject.save()
+    const newQEProject = new qeProject(newQEProjectData);
+    await newQEProject.save();
 
     res.status(201).json({
       message: `${name} successfully created for Quantity Extraction`,
