@@ -27,7 +27,6 @@ export const calculateWaterDemandHandler = (req, res) => {
   }
 };
 
-
 export const calculateWaterSupplyPipesHandler = (req, res) => {
   try {
     const waterSupplyData = req.body.water_supply;
@@ -48,7 +47,6 @@ export const calculateWaterSupplyPipesHandler = (req, res) => {
     });
   }
 };
-
 
 export const calculateDrainagePipesHandler = (req, res) => {
   try {
@@ -71,7 +69,6 @@ export const calculateDrainagePipesHandler = (req, res) => {
   }
 };
 
-
 export const calculatePlumbingHeadlossHandler = (req, res) => {
   try {
     const inputData = req.body;
@@ -87,7 +84,7 @@ export const calculatePlumbingHeadlossHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error processing water requirement data",
+      message: "Error processing plumbing head loss data",
       error: error.message,
     });
   }
@@ -114,7 +111,6 @@ export const calculatePlumbingPumpHandler = (req, res) => {
   }
 };
 
-
 export const calculateRWHSizingHandler = (req, res) => {
   try {
     const rwhData = req.body.rwh;
@@ -136,8 +132,6 @@ export const calculateRWHSizingHandler = (req, res) => {
   }
 };
 
-
-
 export const calculateRainwaterDropSizingHandler = (req, res) => {
   try {
     const inputData = req.body;
@@ -158,6 +152,3 @@ export const calculateRainwaterDropSizingHandler = (req, res) => {
     });
   }
 };
-
-
-
