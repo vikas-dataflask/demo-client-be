@@ -22,7 +22,6 @@ export const calculateFireHeadLossHandler = (req, res) => {
   }
 };
 
-
 export const calculateFirePumpHandler = (req, res) => {
   try {
     const firepumpData = req.body.stations;

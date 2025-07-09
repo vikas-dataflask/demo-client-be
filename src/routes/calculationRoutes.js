@@ -21,6 +21,7 @@ import {
   calculateWaterDemandHandler,
   calculateWaterSupplyPipesHandler,
 } from "../controllers/calculations/plumbingController.js";
+import { calculateRWHVolumeHandler } from "../controllers/calculations/rwhController.js";
 
 const router = express.Router();
 
@@ -46,5 +47,6 @@ router.post(
   verifyToken,
   calculateRainwaterDropSizingHandler
 );
+router.post("/rwh/calculate", calculateRWHVolumeHandler);
 
 export default router;

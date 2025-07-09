@@ -1,0 +1,174 @@
+{
+  "fixtureUnits": {
+    "washBasin": {
+      "cold": 1.0,
+      "hot": 1.0,
+      "description": "Wash Basin"
+    },
+    "wcTank": {
+      "cold": 2.5,
+      "hot": 0,
+      "description": "Water Closet Tank"
+    },
+    "wcFlushValve": {
+      "cold": 5.0,
+      "hot": 0,
+      "description": "Water Closet Flush Valve"
+    },
+    "urinal": {
+      "cold": 1.0,
+      "hot": 0,
+      "description": "Urinal"
+    },
+    "shower": {
+      "cold": 1.5,
+      "hot": 1.5,
+      "description": "Shower"
+    },
+    "kitchenSink": {
+      "cold": 1.5,
+      "hot": 1.5,
+      "description": "Kitchen Sink"
+    },
+    "serviceSink": {
+      "cold": 3.0,
+      "hot": 3.0,
+      "description": "Service Sink"
+    },
+    "bibTap": {
+      "cold": 2.5,
+      "hot": 0,
+      "description": "Bib Tap"
+    },
+    "healthFaucet": {
+      "cold": 1.0,
+      "hot": 1.0,
+      "description": "Health Faucet"
+    },
+    "waterFountain": {
+      "cold": 0.5,
+      "hot": 0,
+      "description": "Water Fountain"
+    },
+    "bathtub": {
+      "cold": 4.0,
+      "hot": 4.0,
+      "description": "Bathtub"
+    },
+    "dishwasher": {
+      "cold": 1.5,
+      "hot": 1.5,
+      "description": "Dishwasher"
+    },
+    "washingMachine": {
+      "cold": 4.0,
+      "hot": 4.0,
+      "description": "Washing Machine"
+    },
+    "bathTub": {
+      "cold": 4.0,
+      "hot": 4.0,
+      "description": "Bathtub"
+    },
+    "bidet": {
+      "cold": 0.5,
+      "hot": 0.5,
+      "description": "Bidet"
+    },
+    "drinkingFountain": {
+      "cold": 0.5,
+      "hot": 0,
+      "description": "Drinking Fountain"
+    },
+    "laundryTray": {
+      "cold": 2.0,
+      "hot": 2.0,
+      "description": "Laundry Tray"
+    },
+    "gardenHose": {
+      "cold": 5.0,
+      "hot": 0,
+      "description": "Garden Hose"
+    },
+    "fireHydrant": {
+      "cold": 10.0,
+      "hot": 0,
+      "description": "Fire Hydrant"
+    },
+    "sprinkler": {
+      "cold": 0.5,
+      "hot": 0,
+      "description": "Sprinkler"
+    }
+  },
+  "flowRateConversion": {
+    "10": 25,
+    "15": 32,
+    "20": 40,
+    "30": 52,
+    "40": 65,
+    "50": 78,
+    "60": 90,
+    "70": 102,
+    "80": 114,
+    "90": 126,
+    "100": 138,
+    "120": 162,
+    "140": 186,
+    "160": 210,
+    "180": 234,
+    "200": 258
+  },
+  "pipeSizingTable": [
+    {
+      "size": 15,
+      "maxFlow": 20,
+      "description": "15mm (1/2 inch)"
+    },
+    {
+      "size": 20,
+      "maxFlow": 30,
+      "description": "20mm (3/4 inch)"
+    },
+    {
+      "size": 25,
+      "maxFlow": 45,
+      "description": "25mm (1 inch)"
+    },
+    {
+      "size": 32,
+      "maxFlow": 70,
+      "description": "32mm (1-1/4 inch)"
+    },
+    {
+      "size": 40,
+      "maxFlow": 100,
+      "description": "40mm (1-1/2 inch)"
+    },
+    {
+      "size": 50,
+      "maxFlow": 150,
+      "description": "50mm (2 inch)"
+    },
+    {
+      "size": 65,
+      "maxFlow": 250,
+      "description": "65mm (2-1/2 inch)"
+    },
+    {
+      "size": 80,
+      "maxFlow": 400,
+      "description": "80mm (3 inch)"
+    },
+    {
+      "size": 100,
+      "maxFlow": 600,
+      "description": "100mm (4 inch)"
+    }
+  ],
+  "velocityLimits": {
+    "domestic": 2.0,
+    "flushing": 3.0,
+    "description": "Maximum velocity in m/s"
+  }
+}
