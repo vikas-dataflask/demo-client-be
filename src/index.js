@@ -20,6 +20,8 @@ import ductSizingRoutes from "./routes/ductSizingRoutes.js";
 import ahuPressureDropRoutes from "./routes/ahuPressureDropRoutes.js";
 import chillerPressureDropRoutes from "./routes/chillerPressureDropRoutes.js";
 import condenserRoutes from "./routes/condenserRoutes.js";
+import fireHeadLossRoutes from "./routes/fireHeadLossRoutes.js";
+import firePumpRoutes from "./routes/firePumpRoutes.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -56,6 +58,8 @@ app.use("/api/duct-sizing", ductSizingRoutes);
 app.use("/api/ahu-pressure-drop", ahuPressureDropRoutes);
 app.use("/api/chiller-pressure-drop", chillerPressureDropRoutes);
 app.use("/api/condenser", condenserRoutes);
+app.use("/api", fireHeadLossRoutes);
+app.use("/api", firePumpRoutes);
 
 
 // Optional: Simple root route, placed after specific API routes
