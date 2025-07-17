@@ -15,6 +15,8 @@ import ductSizingRoutes from "./routes/ductSizingRoutes.js";
 import ahuPressureDropRoutes from "./routes/ahuPressureDropRoutes.js";
 import chillerPressureDropRoutes from "./routes/chillerPressureDropRoutes.js";
 import condenserRoutes from "./routes/condenserRoutes.js";
+import fireHeadLossRoutes from "./routes/fireHeadLossRoutes.js";
+import firePumpRoutes from "./routes/firePumpRoutes.js";
 
 dotenv.config();
 dbConnect();
@@ -39,6 +41,8 @@ app.use("/api/duct-sizing", ductSizingRoutes);
 app.use("/api/ahu-pressure-drop", ahuPressureDropRoutes);
 app.use("/api/chiller-pressure-drop", chillerPressureDropRoutes);
 app.use("/api/condenser", condenserRoutes);
+app.use("/api", fireHeadLossRoutes);
+app.use("/api", firePumpRoutes);
 
 //Start the server
 const PORT = process.env.PORT || 8000;
