@@ -10,6 +10,11 @@ import grilleRoutes from "./routes/grilleRoutes.js";
 import hvacRoutes from "./routes/hvacRoutes.js";
 import waterDemandRoutes from "./routes/waterDemandRoutes.js";
 import heatLoadRoutes from "./routes/heatLoadRoutes.js";
+import ventilationRoutes from "./routes/ventilationRoutes.js";
+import ductSizingRoutes from "./routes/ductSizingRoutes.js";
+import ahuPressureDropRoutes from "./routes/ahuPressureDropRoutes.js";
+import chillerPressureDropRoutes from "./routes/chillerPressureDropRoutes.js";
+import condenserRoutes from "./routes/condenserRoutes.js";
 
 dotenv.config();
 dbConnect();
@@ -29,6 +34,11 @@ app.use("/api/hvac", grilleRoutes);
 app.use("/api/hvac", hvacRoutes);
 app.use("/api/water-demand", waterDemandRoutes);
 app.use("/api/heatload", heatLoadRoutes);
+app.use("/api/ventilation", ventilationRoutes);
+app.use("/api/duct-sizing", ductSizingRoutes);
+app.use("/api/ahu-pressure-drop", ahuPressureDropRoutes);
+app.use("/api/chiller-pressure-drop", chillerPressureDropRoutes);
+app.use("/api/condenser", condenserRoutes);
 
 //Start the server
 const PORT = process.env.PORT || 8000;
