@@ -10,28 +10,45 @@ import grilleRoutes from "./routes/grilleRoutes.js";
 import hvacRoutes from "./routes/hvacRoutes.js";
 import waterDemandRoutes from "./routes/waterDemandRoutes.js";
 import heatLoadRoutes from "./routes/heatLoadRoutes.js";
+
+import userRoutes from "./routes/userRoutes.js";
+import path from "path";
+import { fileURLToPath } from "url";
+import cors from "cors";
 import ventilationRoutes from "./routes/ventilationRoutes.js";
 import ductSizingRoutes from "./routes/ductSizingRoutes.js";
 import ahuPressureDropRoutes from "./routes/ahuPressureDropRoutes.js";
 import chillerPressureDropRoutes from "./routes/chillerPressureDropRoutes.js";
 import condenserRoutes from "./routes/condenserRoutes.js";
 
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 dotenv.config();
 dbConnect();
 
 const app = express();
 
-//Middleware
-app.use(express.json());
+// Middleware
+app.use(express.json()); // Parses incoming JSON requests
+app.use(cors()); // Enables CORS for all routes
 
-//Routes
+// Serve static files from the 'uploads' directory
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
+// --- API Routes ---
+// Specific API routes should come first
 app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes); // User routes (e.g., /api/user/profile, /api/user/delete-profile-pic)
 app.use("/api", projectRoutes);
 app.use("/api", qeRoutes);
 app.use("/api", calculations);
 app.use("/api/duct", ductRoutes);
 app.use("/api/hvac", grilleRoutes);
 app.use("/api/hvac", hvacRoutes);
+
+app.use("/api/hvac", waterDemandRoutes);
+app.use("/api/hvac", heatLoadRoutes);
 app.use("/api/water-demand", waterDemandRoutes);
 app.use("/api/heatload", heatLoadRoutes);
 app.use("/api/ventilation", ventilationRoutes);
@@ -40,9 +57,25 @@ app.use("/api/ahu-pressure-drop", ahuPressureDropRoutes);
 app.use("/api/chiller-pressure-drop", chillerPressureDropRoutes);
 app.use("/api/condenser", condenserRoutes);
 
-//Start the server
-const PORT = process.env.PORT || 8000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Optional: Simple root route, placed after specific API routes
+app.get("/", (req, res) => {
+  res.send("Welcome to the API!");
 });
+
+// --- General 404 handler (if no route matched above) ---
+app.use((req, res) => {
+  res.status(404).send("API Endpoint Not Found");
+});
+
+// --- Global Error Handler (should be the last middleware) ---
+app.use((err, req, res, next) => {
+  console.error("An unhandled error occurred:", err.stack);
+  res.status(err.status || 500).json({
+    message: err.message || "An unexpected error occurred.",
+    error: process.env.NODE_ENV === "development" ? err : {}, // Provide full error in dev
+  });
+});
+
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
