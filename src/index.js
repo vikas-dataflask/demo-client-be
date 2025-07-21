@@ -22,7 +22,12 @@ import chillerPressureDropRoutes from "./routes/chillerPressureDropRoutes.js";
 import condenserRoutes from "./routes/condenserRoutes.js";
 import fireHeadLossRoutes from "./routes/fireHeadLossRoutes.js";
 import firePumpRoutes from "./routes/firePumpRoutes.js";
-
+import waterSupplyPipeRoutes from "./routes/waterSupplyPipeRoutes.js";
+import plumbingHeadLossRoutes from "./routes/plumbingHeadLossRoutes.js";
+import plumbingPumpRoutes from "./routes/plumbingPumpRoutes.js";
+import drainagePipeRoutes from "./routes/drainagePipeRoutes.js";
+import rainwaterDropRoutes from "./routes/rainwaterDropRoutes.js";
+import rwhRoutes from "./routes/rwhRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -60,7 +65,12 @@ app.use("/api/chiller-pressure-drop", chillerPressureDropRoutes);
 app.use("/api/condenser", condenserRoutes);
 app.use("/api", fireHeadLossRoutes);
 app.use("/api", firePumpRoutes);
-
+app.use("/api/water-supply-pipes", waterSupplyPipeRoutes);
+app.use("/api", plumbingHeadLossRoutes);
+app.use("/api", plumbingPumpRoutes);
+app.use("/api/drainage-pipes", drainagePipeRoutes);
+app.use("/api/rainwater-drops", rainwaterDropRoutes);
+app.use("/api/rwh", rwhRoutes);
 
 // Optional: Simple root route, placed after specific API routes
 app.get("/", (req, res) => {

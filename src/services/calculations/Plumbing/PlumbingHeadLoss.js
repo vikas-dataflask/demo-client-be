@@ -1,55 +1,4 @@
-// export const calculatePlumbingHeadloss = ({
-//   number_of_staff,
-//   number_of_passenger,
-//   pd_occupancy,
-//   station_area_for_cleaning,
-//   gardening_area,
-// }) => {
-//   const raw_staff = number_of_staff * (45 * 0.35);
-//   const raw_passenger = number_of_passenger * (15 * 0.65);
-//   const raw_pd_occupancy = pd_occupancy * (45 * 0.35);
-//   const raw_station_cleaning = station_area_for_cleaning * 1;
-//   const raw_gardening = gardening_area * 6;
-//   const raw_total_water_requirement =
-//     raw_staff +
-//     raw_passenger +
-//     raw_pd_occupancy +
-//     raw_station_cleaning +
-//     raw_gardening;
-//   const raw_ug_tank_1_day = raw_total_water_requirement;
-//   const raw_ug_tank_half_day = raw_total_water_requirement / 2;
-
-//   const treated_staff = number_of_staff * (45 * 0.65);
-//   const treated_passenger = number_of_passenger * (15 * 0.35);
-//   const treated_pd_occupancy = pd_occupancy * (45 * 0.65);
-//   const treated_total_water_requirement =
-//     treated_staff + treated_passenger + treated_pd_occupancy;
-//   const treated_ug_tank_1_day = treated_total_water_requirement;
-//   const treated_ug_tank_half_day = treated_total_water_requirement / 2;
-
-//   return {
-//     raw_water_requirement: {
-//       number_of_staff: raw_staff,
-//       number_of_passenger: raw_passenger,
-//       pd_occupancy: raw_pd_occupancy,
-//       station_area_for_cleaning: raw_station_cleaning,
-//       gardening_area: raw_gardening,
-//       total_water_requirement: raw_total_water_requirement,
-//       ug_water_tank_1_day: raw_ug_tank_1_day,
-//       ug_water_tank_half_day: raw_ug_tank_half_day,
-//     },
-//     treated_water_requirement: {
-//       number_of_staff: treated_staff,
-//       number_of_passenger: treated_passenger,
-//       pd_occupancy: treated_pd_occupancy,
-//       total_water_requirement: treated_total_water_requirement,
-//       ug_water_tank_1_day: treated_ug_tank_1_day,
-//       ug_water_tank_half_day: treated_ug_tank_half_day,
-//     },
-//   };
-// };
-
-export const calculatePlumbingHeadloss = ({
+const calculatePlumbingHeadLoss = ({
   pipeDia,
   pipeMaterial,
   pipeLengthHorizontal,
@@ -59,41 +8,48 @@ export const calculatePlumbingHeadloss = ({
   flowrateLpm,
   staticLossMeter,
   staticGainMeter,
+  velocity,
+  heightOfFitting,
 }) => {
-  // Calculate equivalent length including fittings
-  const diameter = pipeDia / 1000; // Convert mm to m
-  let totalEquivalent = pipeLengthHorizontal + pipeLengthVertical;
+  // ✅ Convert units
+  const d = pipeDia / 1000; // mm → m
+  const L = pipeLengthHorizontal + pipeLengthVertical;
+  const Q = flowrateLpm / 1000 / 60; // L/min → m³/s
 
-  // Add equivalent lengths for fittings
-  Object.entries(fittings).forEach(([fitting, count]) => {
-    const equivalentFactors = {
-      SE90: 30,
-      SE45: 16,
-      WE90: 30,
-      GV: 8,
-      NRV: 100,
-      BFV: 0,
-      GLV: 0,
-      OTHER: 0,
-    };
-    totalEquivalent += (equivalentFactors[fitting] || 0) * count * diameter;
-  });
-
-  // Convert flow rate from LPM to m³/s
-  const flowRateM3s = flowrateLpm / 1000 / 60;
-
-  // Hazen-Williams formula for pressure loss
-  const pressureLossPerMeterBar =
-    (6.05 * Math.pow(flowrateLpm, 1.85) * Math.pow(10, 5)) /
+  // ✅ Friction Loss (Hazen-Williams)
+  const H_friction =
+    (10.67 * L * Math.pow(flowrateLpm, 1.85)) /
     (Math.pow(frictionalLossCoefficient, 1.85) * Math.pow(pipeDia, 4.87));
 
-  const pressureLossTotalBar = pressureLossPerMeterBar * totalEquivalent;
-  const pressureLossTotalMeter =
-    (pressureLossTotalBar * Math.pow(10, 5)) / (1000 * 9.81);
+  // ✅ Fitting Loss (K * v² / 2g)
+  const K_values = {
+    SE90: 1,
+    SE45: 0.4,
+    WE90: 0.5,
+    GV: 0.2,
+    NRV: 2,
+    BFV: 0.5,
+    GLV: 10,
+    OTHER: 1,
+  };
 
-  // Total head loss including static components
-  const totalPressureLossBar =
-    pressureLossTotalBar + staticLossMeter - staticGainMeter;
+  const K_total = Object.entries(fittings).reduce(
+    (sum, [fitting, count]) => sum + (K_values[fitting] || 0) * count,
+    0
+  );
+
+  const g = 9.81;
+  const H_fitting = (K_total * Math.pow(velocity, 2)) / (2 * g);
+
+  // ✅ Elevation Loss (as per your formula)
+  const H_elevation = 9.81 * heightOfFitting;
+
+  // ✅ Static Head
+  const H_static = staticLossMeter - staticGainMeter;
+
+  // ✅ Total Head Loss
+  const H_total = H_friction + H_fitting + H_elevation + H_static;
+  const totalPressureLossBar = H_total * 0.0981;
 
   return {
     pipeDia,
@@ -101,16 +57,18 @@ export const calculatePlumbingHeadloss = ({
     pipeLengthHorizontal,
     pipeLengthVertical,
     fittings,
-    equivalentLength: totalEquivalent.toFixed(2),
     frictionalLossCoefficient,
     flowrateLpm,
-    flowRateM3s: flowRateM3s.toFixed(6),
-    pressureLossPerMeterBar: pressureLossPerMeterBar.toFixed(6),
-    pressureLossTotalBar: pressureLossTotalBar.toFixed(3),
-    pressureLossTotalMeter: pressureLossTotalMeter.toFixed(1),
-    staticLossMeter,
-    staticGainMeter,
+    velocity,
+    heightOfFitting,
+    K_total: K_total.toFixed(3),
+    H_friction: H_friction.toFixed(3),
+    H_fitting: H_fitting.toFixed(3),
+    H_elevation: H_elevation.toFixed(3),
+    H_static: H_static.toFixed(3),
+    H_total: H_total.toFixed(3),
     totalPressureLossBar: totalPressureLossBar.toFixed(3),
-    totalPressureLossMeter: (totalPressureLossBar * 10.2).toFixed(1), // Convert bar to meters
   };
 };
+
+export default calculatePlumbingHeadLoss;

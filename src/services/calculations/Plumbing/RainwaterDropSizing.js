@@ -70,11 +70,10 @@ export const calculateRainwaterDropSizing = ({
   const dischargeLpm = dischargeLps * 60; // Convert L/s to L/min
 
   // Calculate theoretical pipe diameter using Manning's formula (for reference)
-  const theoreticalDiameterMm =
-    Math.pow(
-      (dischargeLps * 1000) / (0.084 * Math.sqrt(0.02)), // Assuming 2% slope
-      2 / 5
-    ) * 1000; // Convert to mm
+  const theoreticalDiameterMm = Math.pow(
+    (dischargeLps * 1000) / (0.084 * Math.sqrt(0.02)), // Assuming 2% slope
+    2 / 5
+  ); // Convert to mm
 
   // Find the closest standard pipe size
   const closestPipeSize = PIPE_CAPACITIES.reduce((prev, curr) => {

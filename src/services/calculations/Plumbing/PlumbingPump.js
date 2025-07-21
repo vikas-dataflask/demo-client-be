@@ -1,39 +1,33 @@
-export const calculatePlumbingPump = ({
-  totalWater,
-  fillingTime,
-  stationHeight,
-  pipeMaterial,
-  frictionalLossCoefficient,
-  pipeDia,
-  residualHead,
-  totalPressureLoss,
-  efficiency,
-}) => {
-  const flowrateLpm = totalWater / fillingTime;
-  const flowrateM3s = flowrateLpm / 1000 / 60;
-  const efficiencyDecimal = efficiency / 100;
-  const totalHead = residualHead + totalPressureLoss;
-  const pumpCapacityWatts =
-    totalHead * flowrateM3s * 1000 * 9.81 * efficiencyDecimal;
-  const pumpCapacityHP = pumpCapacityWatts / 1000 / 0.745;
-  const pumpCapacityKW = pumpCapacityHP * 0.745;
+export const calculatePlumbingPump = (data) => {
+  return data.map((pump) => {
+    const {
+      flowrate_lpm, // Flow rate in L/min (user input)
+      total_head, // Total head in meters (user input)
+      pipe_material,
+      friction_loss_coefficient,
+      pipe_dia,
+      efficiency, // Pump efficiency in %
+    } = pump;
 
-  return {
-    totalWaterToBePumped: totalWater,
-    fillingTime,
-    stationHeight,
-    flowrateLpm,
-    flowrateM3s,
-    pipeMaterial,
-    frictionalLossCoefficient,
-    pipeDia,
-    residualHead,
-    totalPressureLoss,
-    totalHead,
-    efficiency: `${efficiency}%`,
-    pumpCapacityWatts: pumpCapacityWatts.toFixed(2),
-    pumpCapacityHP: pumpCapacityHP.toFixed(2),
-    pumpCapacityKW: pumpCapacityKW.toFixed(2),
-  };
+    // ✅ Convert inputs for calculation
+    const Q_gpm = flowrate_lpm / 3.785; // Convert L/min → US GPM
+    const SG = 1; // Specific Gravity (default: 1)
+    const efficiency_decimal = parseFloat(efficiency) / 100;
+
+    // ✅ Pump Capacity Calculation
+    const pump_capacity_hp =
+      (Q_gpm * total_head * SG) / (3960 * efficiency_decimal);
+    const pump_capacity_kw = pump_capacity_hp * 0.746;
+
+    return {
+      flowrate_lpm,
+      total_head,
+      pipe_material,
+      friction_loss_coefficient,
+      pipe_dia,
+      efficiency,
+      pump_capacity_hp: pump_capacity_hp.toFixed(2),
+      pump_capacity_kw: pump_capacity_kw.toFixed(2),
+    };
+  });
 };
-
