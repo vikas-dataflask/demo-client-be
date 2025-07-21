@@ -1,5 +1,5 @@
 import { calculateDrainagePipes } from "../../services/calculations/Plumbing/DrainagePipes.js";
-import { calculatePlumbingHeadloss } from "../../services/calculations/Plumbing/PlumbingHeadLoss.js";
+import calculatePlumbingHeadLoss from "../../services/calculations/Plumbing/PlumbingHeadLoss.js";
 import { calculatePlumbingPump } from "../../services/calculations/Plumbing/PlumbingPump.js";
 import { calculateRainwaterDropSizing } from "../../services/calculations/Plumbing/RainwaterDropSizing.js";
 import { calculateRWHSizing } from "../../services/calculations/Plumbing/rwhSizing.js";
@@ -79,7 +79,7 @@ export const calculatePlumbingHeadlossHandler = (req, res) => {
         .json({ success: false, message: "Invalid input data" });
     }
 
-    const result = calculatePlumbingHeadloss(inputData);
+    const result = calculatePlumbingHeadLoss(inputData);
     res.json({ success: true, data: result });
   } catch (error) {
     res.status(500).json({

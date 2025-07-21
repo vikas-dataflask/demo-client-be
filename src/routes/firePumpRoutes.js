@@ -6,7 +6,7 @@ import {
 
 const router = express.Router();
 
-router.post("/calculate", calculateAndSaveFirePump);
-router.get("/:project_id", getFirePumpByProject);
+router.post("/fire/calculate", calculateAndSaveFirePump);
+router.get("/fire/:project_id", getFirePumpByProject);
 
 export default router;
