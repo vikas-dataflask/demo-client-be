@@ -32,6 +32,8 @@ import breakerRoutes from "./routes/breakerRoutes.js";
 import cableSizingRoutes from "./routes/cableSizingRoutes.js";
 import cableTrayRoutes from "./routes/cableTrayRoutes.js";
 import earthmatRoutes from "./routes/earthmatRoutes.js";
+import waterDemandRoutesV2 from "./routes/waterDemandRoutesV2.js";
+import sprinklerLayoutRoutes from "./routes/sprinklerLayoutRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -79,6 +81,8 @@ app.use("/api/breaker", breakerRoutes);
 app.use("/api/cable-sizing", cableSizingRoutes);
 app.use("/api/cable-tray", cableTrayRoutes);
 app.use("/api/earthmat", earthmatRoutes);
+app.use("/api/water-demand-v2", waterDemandRoutesV2);
+app.use("/api/sprinkler-layout", sprinklerLayoutRoutes);
 
 // Optional: Simple root route, placed after specific API routes
 app.get("/", (req, res) => {
