@@ -1,7 +1,7 @@
 import { calculateAHU } from "../services/calculations/HVAC/AHUCalculation.js";
 import { calculateChiller } from "../services/calculations/HVAC/ChillerCalculation.js";
 import { calculateCondenser } from "../services/calculations/HVAC/CondenserCalculation.js";
-// import { calculateHeatLoad as calculateHeatLoadService } from "../services/calculations/HVAC/HeatLoad.js";
+import { calculateHeatLoad } from "../services/calculations/HVAC/HeatLoad.js";
 import { calculateVentilation } from "../services/calculations/HVAC/Ventilation.js";
 // import {
 //   calculateHeatLoad,
