@@ -1,75 +1,66 @@
 import AhuPressureDrop from "../models/ahuPressureDrop.js";
+import { calculateAHU, calculateTotalAHUForMultipleEquipment } from "../services/calculations/HVAC/AHUCalculation.js";
 
 // Save AHU pressure drop data
 export const saveAhuPressureDropData = async (req, res) => {
   try {
-    const { project_id, room, input_data } = req.body;
+    const { project_id, input_data } = req.body;
 
-    if (!project_id || !room || !input_data) {
+    if (!project_id || !input_data) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields: project_id, room, input_data",
+        message: "Missing required fields: project_id, input_data",
       });
     }
 
     // Check if data already exists
-    const existingData = await AhuPressureDrop.findOne({ project_id, room });
+    const existingData = await AhuPressureDrop.findOne({ project_id });
     if (existingData) {
       return res.status(400).json({
         success: false,
         message:
-          "AHU pressure drop data already exists for this project and room. Use update instead.",
+          "AHU pressure drop data already exists for this project. Use update instead.",
       });
     }
 
-    // Create input summary
-    const inputSummary = {
-      airflow: input_data.airflow,
-      velocity: input_data.velocity,
-      ductShape: input_data.ductShape,
-      ductDiameter: input_data.ductDiameter,
-      ductWidth: input_data.ductWidth,
-      ductHeight: input_data.ductHeight,
-      coilPressureDrop: input_data.coilPressureDrop,
-      filterPressureDrop: input_data.filterPressureDrop,
-      additionalLosses: input_data.additionalLosses,
-      fittingVelocity: input_data.fittingVelocity,
-      airDensity: input_data.airDensity,
-      selectedFittings: input_data.selectedFittings,
-      selectedFittingsQuantities: input_data.selectedFittingsQuantities,
-    };
+    // Perform AHU calculation
+    const calculationResult = calculateAHU(input_data);
 
     const ahuPressureDropData = new AhuPressureDrop({
       project_id,
-      room,
-      airflow: input_data.airflow,
-      velocity: input_data.velocity,
-      ductShape: input_data.ductShape,
-      ductDiameter: input_data.ductDiameter,
-      ductWidth: input_data.ductWidth,
-      ductHeight: input_data.ductHeight,
-      coilPressureDrop: input_data.coilPressureDrop,
-      filterPressureDrop: input_data.filterPressureDrop,
-      additionalLosses: input_data.additionalLosses,
-
-      fittingVelocity: input_data.fittingVelocity,
-      airDensity: input_data.airDensity,
-      selectedFittings: input_data.selectedFittings,
-      selectedFittingsQuantities: input_data.selectedFittingsQuantities,
-
-      // ✅ NEWLY ADDED
-      fittingLosses: input_data.fittingLosses || 0,
-
-      totalPressureDrop: input_data.totalPressureDrop,
-      breakdown: {
-        coilDrop: input_data.coilPressureDrop,
-        filterDrop: input_data.filterPressureDrop,
-        fittingLosses: input_data.fittingLosses || 0,
-        additionalLosses: input_data.additionalLosses || 0,
-      },
-      fittingBreakdown: input_data.fittingBreakdown,
-      calculationSummary: input_data.calculationSummary,
-      inputSummary,
+      equipmentList: [{
+        // Input data
+        flowrate: input_data.flowrate,
+        width: input_data.width || 0,
+        height: input_data.height || 0,
+        diameter: input_data.diameter || 0,
+        length: input_data.length || 0,
+        coefficientOfFitting: input_data.coefficientOfFitting || 0,
+        equipmentName: input_data.equipmentName || "",
+        
+        // Calculated results
+        isDuctOrPlenum: calculationResult.isDuctOrPlenum,
+        area: calculationResult.area,
+        velocity: calculationResult.velocity,
+        hydraulicDiameter: calculationResult.hydraulicDiameter,
+        rectangularDucts: calculationResult.rectangularDucts,
+        le: calculationResult.le,
+        reynoldsNumber: calculationResult.reynoldsNumber,
+        velocityPressure: calculationResult.velocityPressure,
+        frictionFactor: calculationResult.frictionFactor,
+        lambda: calculationResult.lambda,
+        frictionPressureLoss: calculationResult.frictionPressureLoss,
+        fittingPressureLoss: calculationResult.fittingPressureLoss,
+        totalPressureLoss: calculationResult.totalPressureLoss,
+        
+        // Physical constants
+        density: calculationResult.density,
+        kinematicViscosity: calculationResult.kinematicViscosity,
+      }],
+      totalSystemPressureLoss: calculationResult.totalPressureLoss,
+      equipmentCount: 1,
+      successfulCalculations: 1,
+      failedCalculations: 0,
     });
 
     const savedData = await ahuPressureDropData.save();
@@ -77,7 +68,10 @@ export const saveAhuPressureDropData = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "AHU pressure drop data saved successfully",
-      data: savedData,
+      data: {
+        ...savedData.toObject(),
+        calculationResult,
+      },
     });
   } catch (error) {
     console.error("Error saving AHU pressure drop data:", error);
@@ -89,27 +83,26 @@ export const saveAhuPressureDropData = async (req, res) => {
   }
 };
 
-// Get AHU pressure drop data by project_id and room (for autofill)
+// Get AHU pressure drop data by project_id (for autofill)
 export const getAhuPressureDropData = async (req, res) => {
   try {
-    const { project_id, room } = req.params;
+    const { project_id } = req.params;
 
-    if (!project_id || !room) {
+    if (!project_id) {
       return res.status(400).json({
         success: false,
-        message: "Missing required parameters: project_id and room",
+        message: "Missing required parameter: project_id",
       });
     }
 
     const ahuPressureDropData = await AhuPressureDrop.findOne({
       project_id,
-      room,
     });
 
     if (!ahuPressureDropData) {
       return res.status(404).json({
         success: false,
-        message: "AHU pressure drop data not found for this project and room",
+        message: "AHU pressure drop data not found for this project",
       });
     }
 
@@ -131,71 +124,63 @@ export const getAhuPressureDropData = async (req, res) => {
 // Update AHU pressure drop data
 export const updateAhuPressureDropData = async (req, res) => {
   try {
-    const { project_id, room } = req.params;
+    const { project_id } = req.params;
     const { input_data } = req.body;
 
-    if (!project_id || !room || !input_data) {
+    if (!project_id || !input_data) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields: project_id, room, input_data",
+        message: "Missing required fields: project_id, input_data",
       });
     }
 
-    const existingData = await AhuPressureDrop.findOne({ project_id, room });
+    const existingData = await AhuPressureDrop.findOne({ project_id });
     if (!existingData) {
       return res.status(404).json({
         success: false,
-        message: "AHU pressure drop data not found for this project and room",
+        message: "AHU pressure drop data not found for this project",
       });
     }
 
-    // Create input summary
-    const inputSummary = {
-      airflow: input_data.airflow,
-      velocity: input_data.velocity,
-      ductShape: input_data.ductShape,
-      ductDiameter: input_data.ductDiameter,
-      ductWidth: input_data.ductWidth,
-      ductHeight: input_data.ductHeight,
-      coilPressureDrop: input_data.coilPressureDrop,
-      filterPressureDrop: input_data.filterPressureDrop,
-      additionalLosses: input_data.additionalLosses,
-      fittingVelocity: input_data.fittingVelocity,
-      airDensity: input_data.airDensity,
-      selectedFittings: input_data.selectedFittings,
-      selectedFittingsQuantities: input_data.selectedFittingsQuantities,
-    };
+    // Perform AHU calculation
+    const calculationResult = calculateAHU(input_data);
 
     const updatedData = await AhuPressureDrop.findOneAndUpdate(
-      { project_id, room },
+      { project_id },
       {
-        airflow: input_data.airflow,
-        velocity: input_data.velocity,
-        ductShape: input_data.ductShape,
-        ductDiameter: input_data.ductDiameter,
-        ductWidth: input_data.ductWidth,
-        ductHeight: input_data.ductHeight,
-        coilPressureDrop: input_data.coilPressureDrop,
-        filterPressureDrop: input_data.filterPressureDrop,
-        additionalLosses: input_data.additionalLosses,
-        fittingVelocity: input_data.fittingVelocity,
-        airDensity: input_data.airDensity,
-        selectedFittings: input_data.selectedFittings,
-        selectedFittingsQuantities: input_data.selectedFittingsQuantities,
-
-        // ✅ NEWLY ADDED
-        fittingLosses: input_data.fittingLosses || 0,
-
-        totalPressureDrop: input_data.totalPressureDrop,
-        breakdown: {
-          coilDrop: input_data.coilPressureDrop,
-          filterDrop: input_data.filterPressureDrop,
-          fittingLosses: input_data.fittingLosses || 0,
-          additionalLosses: input_data.additionalLosses || 0,
-        },
-        fittingBreakdown: input_data.fittingBreakdown,
-        calculationSummary: input_data.calculationSummary,
-        inputSummary,
+        equipmentList: [{
+          // Input data
+          flowrate: input_data.flowrate,
+          width: input_data.width || 0,
+          height: input_data.height || 0,
+          diameter: input_data.diameter || 0,
+          length: input_data.length || 0,
+          coefficientOfFitting: input_data.coefficientOfFitting || 0,
+          equipmentName: input_data.equipmentName || "",
+          
+          // Calculated results
+          isDuctOrPlenum: calculationResult.isDuctOrPlenum,
+          area: calculationResult.area,
+          velocity: calculationResult.velocity,
+          hydraulicDiameter: calculationResult.hydraulicDiameter,
+          rectangularDucts: calculationResult.rectangularDucts,
+          le: calculationResult.le,
+          reynoldsNumber: calculationResult.reynoldsNumber,
+          velocityPressure: calculationResult.velocityPressure,
+          frictionFactor: calculationResult.frictionFactor,
+          lambda: calculationResult.lambda,
+          frictionPressureLoss: calculationResult.frictionPressureLoss,
+          fittingPressureLoss: calculationResult.fittingPressureLoss,
+          totalPressureLoss: calculationResult.totalPressureLoss,
+          
+          // Physical constants
+          density: calculationResult.density,
+          kinematicViscosity: calculationResult.kinematicViscosity,
+        }],
+        totalSystemPressureLoss: calculationResult.totalPressureLoss,
+        equipmentCount: 1,
+        successfulCalculations: 1,
+        failedCalculations: 0,
       },
       { new: true, runValidators: true }
     );
@@ -203,13 +188,140 @@ export const updateAhuPressureDropData = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "AHU pressure drop data updated successfully",
-      data: updatedData,
+      data: {
+        ...updatedData.toObject(),
+        calculationResult,
+      },
     });
   } catch (error) {
     console.error("Error updating AHU pressure drop data:", error);
     res.status(500).json({
       success: false,
       message: "Error updating AHU pressure drop data",
+      error: error.message,
+    });
+  }
+};
+
+// New endpoint for calculating total system pressure drop for multiple equipment
+export const calculateTotalSystemPressureDrop = async (req, res) => {
+  try {
+    const { equipmentList, project_id } = req.body;
+
+    if (!equipmentList || !Array.isArray(equipmentList) || equipmentList.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Equipment list must be a non-empty array",
+      });
+    }
+
+    // Perform total system calculation
+    const result = calculateTotalAHUForMultipleEquipment(equipmentList);
+
+    // Save the complete data to database if project_id is provided
+    if (project_id) {
+      try {
+        // Check if data already exists
+        const existingData = await AhuPressureDrop.findOne({ project_id });
+        
+        if (existingData) {
+          // Update existing data
+          await AhuPressureDrop.findOneAndUpdate(
+            { project_id },
+            {
+              equipmentList: result.individualResults.map(equipment => ({
+                // Input data
+                flowrate: equipment.input_flowrate,
+                width: equipment.input_width,
+                height: equipment.input_height,
+                diameter: equipment.input_diameter,
+                length: equipment.input_length,
+                coefficientOfFitting: equipment.input_coefficientOfFitting,
+                equipmentName: equipment.input_equipmentName,
+                
+                // Calculated results
+                isDuctOrPlenum: equipment.isDuctOrPlenum,
+                area: equipment.area,
+                velocity: equipment.velocity,
+                hydraulicDiameter: equipment.hydraulicDiameter,
+                rectangularDucts: equipment.rectangularDucts,
+                le: equipment.le,
+                reynoldsNumber: equipment.reynoldsNumber,
+                velocityPressure: equipment.velocityPressure,
+                frictionFactor: equipment.frictionFactor,
+                lambda: equipment.lambda,
+                frictionPressureLoss: equipment.frictionPressureLoss,
+                fittingPressureLoss: equipment.fittingPressureLoss,
+                totalPressureLoss: equipment.totalPressureLoss,
+                
+                // Physical constants
+                density: equipment.density,
+                kinematicViscosity: equipment.kinematicViscosity,
+              })),
+              totalSystemPressureLoss: result.totalSystemPressureLoss,
+              equipmentCount: result.equipmentCount,
+              successfulCalculations: result.successfulCalculations,
+              failedCalculations: result.failedCalculations,
+            },
+            { new: true, runValidators: true }
+          );
+        } else {
+          // Create new data
+          const ahuPressureDropData = new AhuPressureDrop({
+            project_id,
+            equipmentList: result.individualResults.map(equipment => ({
+              // Input data
+              flowrate: equipment.input_flowrate,
+              width: equipment.input_width,
+              height: equipment.input_height,
+              diameter: equipment.input_diameter,
+              length: equipment.input_length,
+              coefficientOfFitting: equipment.input_coefficientOfFitting,
+              equipmentName: equipment.input_equipmentName,
+              
+              // Calculated results
+              isDuctOrPlenum: equipment.isDuctOrPlenum,
+              area: equipment.area,
+              velocity: equipment.velocity,
+              hydraulicDiameter: equipment.hydraulicDiameter,
+              rectangularDucts: equipment.rectangularDucts,
+              le: equipment.le,
+              reynoldsNumber: equipment.reynoldsNumber,
+              velocityPressure: equipment.velocityPressure,
+              frictionFactor: equipment.frictionFactor,
+              lambda: equipment.lambda,
+              frictionPressureLoss: equipment.frictionPressureLoss,
+              fittingPressureLoss: equipment.fittingPressureLoss,
+              totalPressureLoss: equipment.totalPressureLoss,
+              
+              // Physical constants
+              density: equipment.density,
+              kinematicViscosity: equipment.kinematicViscosity,
+            })),
+            totalSystemPressureLoss: result.totalSystemPressureLoss,
+            equipmentCount: result.equipmentCount,
+            successfulCalculations: result.successfulCalculations,
+            failedCalculations: result.failedCalculations,
+          });
+          
+          await ahuPressureDropData.save();
+        }
+      } catch (saveError) {
+        console.error("Error saving AHU data:", saveError);
+        // Continue with the response even if save fails
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Total system pressure drop calculated successfully",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Error calculating total system pressure drop:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error calculating total system pressure drop",
       error: error.message,
     });
   }
