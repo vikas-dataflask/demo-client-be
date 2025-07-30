@@ -1,38 +1,9 @@
 import Project from "../models/projectModel.js";
-import path from "path";
-import fs from "fs";
-import DxfParser from "dxf-parser";
-
 
 export const createProject = async (req, res) => {
   try {
-    const {
-      user,
-      name,
-      location,
-      building_type,
-      sub_building_type,
-      level,
-    } = req.body;
-
-    let dxf_entities = undefined;
-
-    if (req.file) {
-      const dxfFilePath = path.join(req.file.destination, req.file.filename);
-
-      const dxfContents = fs.readFileSync(dxfFilePath, 'utf-8');
-      const parser = new DxfParser();
-
-      try {
-        const parsedData = parser.parseSync(dxfContents);
-        dxf_entities = parsedData.entities;
-      } catch (parseErr) {
-        return res.status(400).json({
-          error: 'Invalid DXF file',
-          details: parseErr.message,
-        });
-      }
-    }
+    const { user, name, location, building_type, sub_building_type, level } =
+      req.body;
 
     const newProjectData = {
       user,
@@ -42,11 +13,6 @@ export const createProject = async (req, res) => {
       sub_building_type,
       level,
     };
-
-    // Only add dxf_entities if it exists
-    if (dxf_entities) {
-      newProjectData.dxf_entities = dxf_entities;
-    }
 
     const newProject = new Project(newProjectData);
     await newProject.save();
