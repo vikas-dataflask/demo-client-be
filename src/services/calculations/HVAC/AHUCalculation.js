@@ -3,123 +3,197 @@
 export const calculateAHU = (inputData) => {
   // User inputs: These fields are extracted from the incoming request body
   const flowrate = parseFloat(inputData.flowrate); // m^3/s
-  const width = parseFloat(inputData.width); // m
-  const height = parseFloat(inputData.height); // m
-  const length = parseFloat(inputData.length); // m (Straight length)
-  const equipment = inputData.equipment; // Capture equipment type
-
-  // Fixed standard values as per your instruction
-  const EPSILON = 0.09; // Absolute roughness in meters (e)
-  const C0_FIXED = 0.52; // Local Loss Coefficient (C0)
-  const U0_FIXED = 5.0; // U0
+  const width = parseFloat(inputData.width) || 0; // m (optional)
+  const height = parseFloat(inputData.height) || 0; // m (optional)
+  const diameter = parseFloat(inputData.diameter) || 0; // m (optional)
+  const length = parseFloat(inputData.length) || 0; // m (optional)
+  const coefficientOfFitting = parseFloat(inputData.coefficientOfFitting) || 0; // user input (optional, default 0.09)
+  const equipmentName = inputData.equipmentName || ""; // equipment name for logic determination
 
   // Physical constants
-  const RHO_AIR = 1.225; // kg/m^3 (Density of Air at 20°C, Standard Atmospheric Pressure) - "r" in your formula
-  const NU_AIR = 0.00001568; // m^2/s (Kinematic Viscosity of Air at 20°C) - "n" in your formula (assuming m^2/s)
+  const DENSITY = 1.2; // kg/m^3 (density constant)
+  const KINEMATIC_VISCOSITY = 0.000015; // m^2/s (n constant)
+  const coefficientOfFriction = 0.09;
 
-  // Calculated fields: These values are derived from inputs and constants
-
-  // Area (A)
-  const area_m2 = width * height;
-  if (area_m2 === 0) {
-    throw new Error("Duct area cannot be zero. Check width and height inputs.");
+  // Validate required inputs
+  if (!flowrate || flowrate <= 0) {
+    throw new Error("Flowrate must be a positive number");
   }
 
-  // Mean Velocity (U)
-  const u = flowrate / area_m2;
+  // Determine if this is a duct/plenum or other equipment
+  const isDuctOrPlenum =
+    equipmentName.toLowerCase().includes("duct") ||
+    equipmentName.toLowerCase().includes("plenum");
 
-  // Hydraulic Diameter (Dh) - User provided: Dh = 4(ab)/2(a+b) which simplifies to 2ab/(a+b)
-  const dh = (2 * width * height) / (width + height);
-  if (dh === 0) {
-    throw new Error(
-      "Hydraulic diameter cannot be zero. Check width and height inputs."
-    );
+  // Calculate Area
+  let area;
+  if (width === 0 && height === 0) {
+    // Round duct
+    if (diameter <= 0) {
+      throw new Error("For round ducts, diameter must be provided");
+    }
+    area = (Math.PI * Math.pow(diameter, 2)) / 4;
+  } else {
+    // Rectangular duct
+    if (width <= 0 || height <= 0) {
+      throw new Error(
+        "For rectangular ducts, both width and height must be positive"
+      );
+    }
+    area = width * height;
   }
 
-  // Equivalent Diameter (De) - NEW CALCULATION ADDED
-  // Formula based on previous discussions: De = 1.30 * ((ab)^0.625) / ((a+b)^0.25)
-  const de = (1.3 * Math.pow(area_m2, 0.625)) / Math.pow(width + height, 0.25);
-  if (isNaN(de) || !isFinite(de)) {
-    throw new Error("Could not calculate Equivalent Diameter. Check inputs.");
+  // Calculate Velocity
+  const velocity = flowrate / area;
+
+  // Calculate Hydraulic Diameter
+  let hydraulicDiameter;
+  if (width === 0 && height === 0) {
+    // Round duct
+    hydraulicDiameter = diameter;
+  } else {
+    // Rectangular duct
+    hydraulicDiameter = (4 * width * height) / (2 * (width + height));
   }
 
-  // Equivalent Length (Le) - NEW FORMULA and CONDITIONAL LOGIC
+  // Calculate Rectangular Ducts (Equivalent Diameter)
+  let rectangularDucts;
+  if (width === 0 && height === 0) {
+    // Round duct
+    rectangularDucts = diameter;
+  } else {
+    // Rectangular duct
+    rectangularDucts =
+      (1.3 * Math.pow(area, 0.625)) / Math.pow(width + height, 0.25);
+  }
+
+  // Calculate Le (Equivalent Length)
   let le;
-  if (u > 13) {
-    le = (u * Math.pow(area_m2, 0.5)) / 4500;
+  if (velocity > 13) {
+    le = 1000 * ((velocity * Math.pow(area, 0.5)) / 4500);
   } else {
-    // u <= 13 m/s
-    le = Math.pow(area_m2, 0.5) / 350;
+    le = 1000 * (Math.pow(area, 0.5) / 350);
   }
 
-  // Reynolds Number (Re) - UPDATED FORMULA with 1000 factor
-  // User provided: Re = UDh/1000n. Assuming n is NU_AIR
-  const re = (u * dh) / (1000 * NU_AIR);
+  // Calculate Reynolds Number
+  const reynoldsNumber = (velocity * hydraulicDiameter) / KINEMATIC_VISCOSITY;
 
-  // Relative Roughness (e/Dh)
-  const relativeRoughness = EPSILON / dh;
+  // Calculate Velocity Pressure
+  const velocityPressure = 0.5 * DENSITY * Math.pow(velocity, 2);
 
-  // Intermediate Friction Factor (f') - "f'" in your formula
-  const f_prime = 0.11 * Math.pow(relativeRoughness + 68 / re, 0.25);
+  // Calculate Friction Factor
+  const frictionFactor =
+    0.11 *
+    Math.pow(
+      (coefficientOfFriction * 0.001) / hydraulicDiameter + 68 / reynoldsNumber,
+      0.25
+    );
 
-  // Final Friction Factor (lambda - "l" in your formula) - NEW CONDITIONAL LOGIC
+  // Calculate Lambda
   let lambda;
-  if (f_prime < 0.018) {
-    lambda = 0.85 * f_prime + 0.0028;
+  if (frictionFactor < 0.018) {
+    lambda = 0.85 * frictionFactor + 0.0028;
   } else {
-    lambda = f_prime;
+    lambda = frictionFactor;
   }
 
-  // Velocity Pressure (Pv) - "1/2rU²" in your formula
-  const pv = 0.5 * RHO_AIR * Math.pow(u, 2);
+  // Calculate Friction Pressure Loss and Fitting Pressure Loss based on equipment type
+  let frictionPressureLoss = 0;
+  let fittingPressureLoss = 0;
 
-  // Velocity Pressure for U0 (Pv0) - for DPl calculation - "1/2rU0²"
-  const pv0 = 0.5 * RHO_AIR * Math.pow(U0_FIXED, 2);
+  if (isDuctOrPlenum) {
+    // For ducts/plenums: Calculate Friction Pressure Loss, Fitting Pressure Loss = 0
+    if (length === 0) {
+      frictionPressureLoss =
+        ((lambda * le) / hydraulicDiameter) *
+        0.5 *
+        DENSITY *
+        Math.pow(velocity, 2);
+    } else {
+      frictionPressureLoss =
+        ((lambda * length) / hydraulicDiameter) *
+        0.5 *
+        DENSITY *
+        Math.pow(velocity, 2);
+    }
+    fittingPressureLoss = 0;
+  } else {
+    // For other equipment: Calculate Fitting Pressure Loss, Friction Pressure Loss = 0
+    frictionPressureLoss = 0;
+    fittingPressureLoss =
+      coefficientOfFitting * 0.5 * DENSITY * Math.pow(velocity, 2);
+  }
 
-  // Frictional Pressure Drop (DPf) - NEW DUAL FORMULA for straight duct and fittings
-  // User provided: DPf = (lL/D)1/2rU²Straight duct, DPf = (lLe/D)1/2rU²fittings
-  // Assuming D is Dh for both. Total DPf is sum of straight and fittings frictional losses.
-  const deltaPf_straight = ((lambda * length) / dh) * pv;
-  const deltaPf_fittings = ((lambda * le) / dh) * pv;
-  const total_deltaPf = deltaPf_straight + deltaPf_fittings;
-
-  // Local Pressure Drop (DPl) - NEW FORMULA using U0
-  // User provided: DPl = C01/2rU0²
-  const deltaPl = C0_FIXED * pv0;
-
-  // Total Pressure Drop (DPt)
-  const deltaPt = total_deltaPf + deltaPl;
+  // Calculate Total Pressure Loss
+  const totalPressureLoss = frictionPressureLoss + fittingPressureLoss;
 
   return {
     message: "AHU pressure drop calculated successfully!",
+    
     // User inputs echoed in results
     input_flowrate: flowrate,
     input_width: width,
     input_height: height,
+    input_diameter: diameter,
     input_length: length,
-    input_equipment: equipment, // Echo equipment type
+    input_coefficientOfFitting: coefficientOfFitting,
+    input_equipmentName: equipmentName,
+    isDuctOrPlenum: isDuctOrPlenum,
 
-    // Fixed standard values included in output for reference
-    fixed_epsilon: EPSILON,
-    fixed_u0: U0_FIXED,
-    fixed_c0: C0_FIXED,
+    // Physical constants
+    density: DENSITY,
+    kinematicViscosity: KINEMATIC_VISCOSITY,
 
-    // Calculated intermediate and final fields
-    area_m2: parseFloat(area_m2.toFixed(4)),
-    u: parseFloat(u.toFixed(4)),
-    dh: parseFloat(dh.toFixed(4)),
-    de: parseFloat(de.toFixed(4)), // NOW INCLUDED IN THE RETURNED OBJECT
-    le: parseFloat(le.toFixed(4)),
-    re: parseFloat(re.toFixed(2)),
-    relativeRoughness: parseFloat(relativeRoughness.toFixed(6)),
-    f_prime: parseFloat(f_prime.toFixed(6)),
-    lambda: parseFloat(lambda.toFixed(6)),
-    pv: parseFloat(pv.toFixed(4)),
-    pv0: parseFloat(pv0.toFixed(4)),
-    calculated_deltaPf_straight: parseFloat(deltaPf_straight.toFixed(4)),
-    calculated_deltaPf_fittings: parseFloat(deltaPf_fittings.toFixed(4)),
-    calculated_deltaPf: parseFloat(total_deltaPf.toFixed(4)),
-    calculated_deltaPl: parseFloat(deltaPl.toFixed(4)),
-    calculated_deltaPt: parseFloat(deltaPt.toFixed(4)),
+    // Calculated intermediate and final fields - rounded to 1 decimal place
+    area: parseFloat(area.toFixed(1)),
+    velocity: parseFloat(velocity.toFixed(1)),
+    hydraulicDiameter: parseFloat(hydraulicDiameter.toFixed(1)),
+    rectangularDucts: parseFloat(rectangularDucts.toFixed(1)),
+    le: parseFloat(le.toFixed(1)),
+    reynoldsNumber: parseFloat(reynoldsNumber.toFixed(1)),
+    velocityPressure: parseFloat(velocityPressure.toFixed(1)),
+    frictionFactor: parseFloat(frictionFactor.toFixed(1)),
+    lambda: parseFloat(lambda.toFixed(6)), // Lambda not restricted to 1 decimal place
+    
+    // Pressure losses - rounded to 1 decimal place
+    frictionPressureLoss: parseFloat(frictionPressureLoss.toFixed(1)),
+    fittingPressureLoss: parseFloat(fittingPressureLoss.toFixed(1)),
+    totalPressureLoss: parseFloat(totalPressureLoss.toFixed(1)),
+  };
+};
+
+// New function to calculate total pressure drop for multiple equipment
+export const calculateTotalAHUForMultipleEquipment = (equipmentList) => {
+  if (!equipmentList || !Array.isArray(equipmentList) || equipmentList.length === 0) {
+    throw new Error("Equipment list must be a non-empty array");
+  }
+
+  const results = [];
+  let totalSystemPressureLoss = 0;
+
+  equipmentList.forEach((equipment, index) => {
+    try {
+      const result = calculateAHU(equipment);
+      results.push({
+        index: index + 1,
+        equipmentName: equipment.equipmentName || `Equipment ${index + 1}`,
+        ...result
+      });
+      totalSystemPressureLoss += result.totalPressureLoss;
+    } catch (error) {
+      results.push({
+        index: index + 1,
+        equipmentName: equipment.equipmentName || `Equipment ${index + 1}`,
+        error: error.message
+      });
+    }
+  });
+
+  return {
+    individualResults: results,
+    totalSystemPressureLoss: parseFloat(totalSystemPressureLoss.toFixed(1)),
+    equipmentCount: equipmentList.length,
+    successfulCalculations: results.filter(r => !r.error).length,
+    failedCalculations: results.filter(r => r.error).length
   };
 };
