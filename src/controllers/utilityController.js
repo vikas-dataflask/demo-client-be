@@ -14,7 +14,7 @@ export const parseDxf = async (req, res) => {
 
     try {
       const parsedData = parser.parseSync(dxfContents);
-      dxf_entities = parsedData.entities;
+      dxf_entities = parsedData;
     } catch (parseErr) {
       return res.status(400).json({
         error: "Invalid DXF file",
