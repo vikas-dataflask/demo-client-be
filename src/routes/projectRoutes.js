@@ -11,7 +11,7 @@ import verifyToken from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
 router.get("/project", verifyToken, listAllProjects);
-router.post("/project", verifyToken, upload.single("dxf_file"), createProject);
+router.post("/project", verifyToken, upload, createProject);
 router.delete("/project/:id", verifyToken, deleteProjectData);
 router.get("/project/:id", verifyToken, getProjectById);
 

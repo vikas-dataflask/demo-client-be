@@ -35,6 +35,11 @@ import earthmatRoutes from "./routes/earthmatRoutes.js";
 import waterDemandRoutesV2 from "./routes/waterDemandRoutesV2.js";
 import sprinklerLayoutRoutes from "./routes/sprinklerLayoutRoutes.js";
 import utilityRoutes from "./routes/utilityRoutes.js";
+import wallRoutes from "./routes/wallRoutes.js";
+import roomRoutes from "./routes/roomRoutes.js";
+import doorRoutes from "./routes/doorRoutes.js";
+import windowRoutes from "./routes/windowRoutes.js";
+import floorRoutes from "./routes/floorRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -85,6 +90,11 @@ app.use("/api/earthmat", earthmatRoutes);
 app.use("/api/water-demand-v2", waterDemandRoutesV2);
 app.use("/api/sprinkler-layout", sprinklerLayoutRoutes);
 app.use("/api", utilityRoutes);
+app.use("/api/walls", wallRoutes);
+app.use("/api/floors", floorRoutes);
+app.use("/api/rooms", roomRoutes);
+app.use("/api/doors", doorRoutes);
+app.use("/api/windows", windowRoutes);
 
 // Optional: Simple root route, placed after specific API routes
 app.get("/", (req, res) => {

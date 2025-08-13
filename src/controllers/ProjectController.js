@@ -14,6 +14,12 @@ export const createProject = async (req, res) => {
       level,
     };
 
+    // Handle file upload if present
+    if (req.file) {
+      newProjectData.dxf_file = req.file.buffer;
+      newProjectData.file_name = req.file.originalname;
+    }
+
     const newProject = new Project(newProjectData);
     await newProject.save();
 

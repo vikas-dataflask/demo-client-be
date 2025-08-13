@@ -27,6 +27,14 @@ const projectSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    dxf_file: {
+      type: Buffer,
+      required: false,
+    },
+    file_name: {
+      type: String,
+      required: false,
+    },
   },
   { timestamps: true }
 );
