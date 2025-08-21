@@ -50,6 +50,7 @@ const app = express();
 
 // Middleware
 app.use(express.json()); // Parses incoming JSON requests
+app.use(express.urlencoded({ extended: true })); // Parses incoming FormData requests
 app.use(cors()); // Enables CORS for all routes
 
 // Serve static files from the 'uploads' directory

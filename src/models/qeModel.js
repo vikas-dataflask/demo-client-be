@@ -19,6 +19,10 @@ const qeSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    sub_building_type: {
+      type: String,
+      required: true,
+    },
     level: {
       type: String,
       required: true,
