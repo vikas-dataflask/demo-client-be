@@ -41,6 +41,7 @@ import roomRoutes from "./routes/roomRoutes.js";
 import doorRoutes from "./routes/doorRoutes.js";
 import windowRoutes from "./routes/windowRoutes.js";
 import floorRoutes from "./routes/floorRoutes.js";
+import structureRoutes from "./routes/structureRoutes.js";
 import prefillRoutes from "./routes/prefill.js";
 import vediRoutes from "./routes/vediRoutes.js";
 
@@ -99,6 +100,7 @@ app.use("/api/floors", floorRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/doors", doorRoutes);
 app.use("/api/windows", windowRoutes);
+app.use("/api/structure", structureRoutes);
 app.use("/api/prefill", prefillRoutes);
 app.use("/api/vedi", vediRoutes);
 
