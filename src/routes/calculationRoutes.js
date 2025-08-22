@@ -34,7 +34,7 @@ router.post("/heatload", verifyToken, calculateHeatLoadHandler);
 router.post("/ventilation", verifyToken, calculateVentilationHandler);
 router.post("/ahu", verifyToken, calculateAHUHandler); // New AHU route
 router.post("/chiller", verifyToken, calculateChillerHandler); // Added for Chiller
-router.post("/condenser", verifyToken, calculateCondenserHandler); // New: Add Condenser route
+router.post("/condenser/calculate", verifyToken, calculateCondenserHandler); // New: Add Condenser calculation route
 //Plumbing
 router.post("/waterdemand", verifyToken, calculateWaterDemandHandler);
 router.post("/watersupplypipes", verifyToken, calculateWaterSupplyPipesHandler);

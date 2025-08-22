@@ -1,6 +1,6 @@
 import { calculateAHU } from "../services/calculations/HVAC/AHUCalculation.js";
 import { calculateChiller } from "../services/calculations/HVAC/ChillerCalculation.js";
-import { calculateCondenser } from "../services/calculations/HVAC/CondenserCalculation.js";
+import { calculateCondenserPressureDrop } from "../utils/condenserPressureDrop.js";
 import { calculateHeatLoad } from "../services/calculations/HVAC/HeatLoad.js";
 import { calculateVentilation } from "../services/calculations/HVAC/Ventilation.js";
 // import {
@@ -113,7 +113,8 @@ export const calculateCondenserHandler = (req, res) => {
         .json({ success: false, message: "Invalid input data" });
     }
 
-    const result = calculateCondenser(inputData);
+    // Use the correct function that matches the frontend payload structure
+    const result = calculateCondenserPressureDrop(inputData, inputData.mode || "data");
     res.json({ success: true, data: result });
   } catch (error) {
     res.status(500).json({
