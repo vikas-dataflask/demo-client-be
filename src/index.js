@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import dotenv from "dotenv";
 import dbConnect from "./config/dbConnect.js";
@@ -41,6 +42,7 @@ import doorRoutes from "./routes/doorRoutes.js";
 import windowRoutes from "./routes/windowRoutes.js";
 import floorRoutes from "./routes/floorRoutes.js";
 import prefillRoutes from "./routes/prefill.js";
+import vediRoutes from "./routes/vediRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -98,6 +100,7 @@ app.use("/api/rooms", roomRoutes);
 app.use("/api/doors", doorRoutes);
 app.use("/api/windows", windowRoutes);
 app.use("/api/prefill", prefillRoutes);
+app.use("/api/vedi", vediRoutes);
 
 // Optional: Simple root route, placed after specific API routes
 app.get("/", (req, res) => {
