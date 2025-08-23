@@ -219,7 +219,7 @@ export const createFootingDesign = async (req, res) => {
       step: 16,
       title: "Steel Area in Y-direction",
       formula: "Ast_y = M_uy * 10⁶ / (0.87 * fy * j * d)",
-      substitution: `Ast_y = ${momentY.toFixed(2)} * 10⁶ / (0.87 * ${fy} * ${jValue} * ${effectiveDepth}) = ${providedAstY.toFixed(0)} mm²`,
+      substitution: `Ast_y = ${momentY.toFixed(2)} * 10⁶ / (0.87 * ${fy} * ${jValue} * ${effectiveDepth}) = ${astY.toFixed(0)} mm²`,  // ✅ Fixed: was using providedAstY
       result: `${astY.toFixed(0)} mm²`,
       isCodeReference: "IS 456:2000 Cl. 38.1"
     });
@@ -377,84 +377,98 @@ export const createFootingDesign = async (req, res) => {
       }
     };
 
-    // Create new footing design document
-    const footingDesign = new FootingDesign({
-      projectId: projectId,
-      userId: userId,
-      
-      // Input parameters
-      columnLoad,
-      columnWidth,
-      columnDepth,
-      soilSBC,
-      footingLength,
-      footingWidth,
-      footingDepth,
-      concreteGrade,
-      steelGrade,
-      clearCover,
-      barDiameter,
-      unitWeightSoil,
-      
-      // Calculated results
-      requiredArea,
-      providedArea,
-      netPressure,
-      projectionX,
-      projectionY,
-      momentX,
-      momentY,
-      effectiveDepth,
-      astX,
-      astY,
-      providedAstX,
-      providedAstY,
-      barsRequiredX,
-      barsRequiredY,
-      spacingX,
-      spacingY,
-      
-      // Design checks
-      areaCheck,
-      depthCheck,
-      oneWayShearCheck,
-      punchingShearCheck,
-      
-      // Additional data
-      calculationSteps,
-      designSummary,
-      
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
+         // Create new footing design document
+     const footingDesign = new FootingDesign({
+       projectId: projectId,
+       userId: userId,
+       
+       // Required footingId
+       footingId: `FOOT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+       
+       // Input parameters (nested object as per model schema)
+       inputParameters: {
+         footingType: inputData.footingType || 'Isolated',
+         columnWidth: columnWidth,
+         columnDepth: columnDepth,
+         axialLoad: columnLoad,  // Map columnLoad to axialLoad
+         momentX: inputData.momentX || 0,
+         momentY: inputData.momentY || 0,
+         soilBearingCapacity: soilSBC,  // Map soilSBC to soilBearingCapacity
+         concreteGrade: concreteGrade,
+         steelGrade: steelGrade,
+         clearCover: clearCover
+       },
+       
+       // Calculated results (nested object as per model schema)
+       calculatedResults: {
+         // Material Properties
+         fck: fck,
+         fy: fy,
+         
+         // Footing Dimensions
+         footingLength: footingLength,
+         footingWidth: footingWidth,
+         footingDepth: footingDepth,
+         footingArea: providedArea,
+         
+         // Load and Pressure
+         requiredArea: requiredArea,
+         netPressure: netPressure,
+         
+         // Projections
+         projectionX: projectionX,
+         projectionY: projectionY,
+         
+         // Moments
+         momentX: momentX,
+         momentY: momentY,
+         
+         // Depth
+         effectiveDepth: effectiveDepth,
+         
+         // Steel Areas
+         astX: astX,
+         astY: astY,
+         providedAstX: providedAstX,
+         providedAstY: providedAstY,
+         
+         // Reinforcement
+         barsRequiredX: barsRequiredX,
+         barsRequiredY: barsRequiredY,
+         spacingX: spacingX,
+         spacingY: spacingY,
+         
+         // Design Checks
+         areaCheck: areaCheck,
+         depthCheck: depthCheck,
+         oneWayShearCheck: oneWayShearCheck,
+         punchingShearCheck: punchingShearCheck,
+         
+         // Overall Status
+         designStatus: areaCheck && depthCheck && oneWayShearCheck && punchingShearCheck ? 'Pass' : 'Fail'
+       },
+       
+       // Additional data
+       calculationSteps: calculationSteps,
+       designSummary: designSummary
+     });
 
     // Save to database
     await footingDesign.save();
 
-    // Return response
-    res.status(201).json({
-      success: true,
-      message: 'Footing design created successfully',
-      data: {
-        designId: footingDesign._id,
-        designSummary,
-        calculationSteps,
-        inputParameters: {
-          columnLoad,
-          columnWidth,
-          columnDepth,
-          soilSBC,
-          footingLength,
-          footingWidth,
-          footingDepth,
-          concreteGrade,
-          steelGrade,
-          clearCover,
-          barDiameter,
-          unitWeightSoil
-        }
-      }
-    });
+         // Return response
+     res.status(201).json({
+       success: true,
+       message: 'Footing design created successfully',
+       data: {
+         designId: footingDesign._id,
+         footingId: footingDesign.footingId,
+         designSummary,
+         calculationSteps,
+         inputParameters: footingDesign.inputParameters,
+         calculatedResults: footingDesign.calculatedResults
+       }
+     });
 
   } catch (error) {
     console.error('Error creating footing design:', error);

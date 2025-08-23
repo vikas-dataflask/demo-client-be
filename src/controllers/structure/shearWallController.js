@@ -371,6 +371,10 @@ export const createShearWallDesign = async (req, res) => {
     const aspectRatio = wallHeight / wallLength;
     const aspectRatioCheck = aspectRatio >= 0.5 && aspectRatio <= 4.0;
     
+    // ✅ Add missing wallArea and wallVolume calculations
+    const wallArea = wallLength * wallThickness;
+    const wallVolume = wallArea * wallHeight;
+    
     calculationSteps.push({
       step: 26,
       title: "Aspect Ratio Check",
@@ -433,41 +437,59 @@ export const createShearWallDesign = async (req, res) => {
       projectId: projectId,
       userId: userId,
       
-      // Input parameters
-      wallType,
-      wallHeight,
-      wallLength,
-      wallThickness,
-      numberOfStoreys,
-      seismicZone,
-      importanceFactor,
-      responseReductionFactor,
-      soilType,
-      totalBuildingWeight,
-      lateralLoad,
-      axialLoad: axialLoad || 0,
-      concreteGrade,
-      steelGrade,
-      clearCover,
-      mainBarDiameter,
-      horizontalBarDiameter,
+      // Required shearWallId
+      shearWallId: `SHEAR_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       
-      // Calculated results
-      aspectRatio,
-      baseShear,
-      flexuralMoment,
-      effectiveDepth,
-      requiredSteel,
-      governingSteel,
-      mainBarConfiguration: `${numberOfMainBars} bars of ${mainBarDiameter}mm @ ${mainBarSpacing.toFixed(0)} mm c/c`,
-      horizontalBarConfiguration: `${horizontalBarDiameter}mm @ ${horizontalBarSpacing.toFixed(0)} mm c/c`,
-      shearStress,
-      permissibleShearStress,
-      boundaryElementRequired,
+      // Input parameters (nested object as per model schema)
+      inputParameters: {
+        wallType: inputData.wallType,
+        wallLength: inputData.wallLength,
+        wallThickness: inputData.wallThickness,
+        wallHeight: inputData.wallHeight,
+        axialLoad: inputData.axialLoad,
+        shearForce: inputData.shearForce,                    // Use original frontend field names
+        bendingMoment: inputData.bendingMoment,              // Use original frontend field names
+        concreteGrade: inputData.concreteGrade,
+        steelGrade: inputData.steelGrade,
+        clearCover: inputData.clearCover
+      },
       
-      // Calculation steps and summary
-      calculationSteps,
-      designSummary
+      // Calculated results (nested object as per model schema)
+      calculatedResults: {
+        // Material Properties
+        fck: fck,
+        fy: fy,
+        
+        // Geometric Properties
+        wallArea: wallArea,
+        wallVolume: wallVolume,
+        aspectRatio: aspectRatio,
+        
+        // Seismic Analysis
+        baseShear: baseShear,
+        flexuralMoment: flexuralMoment,
+        
+        // Structural Analysis
+        effectiveDepth: effectiveDepth,
+        requiredSteel: requiredSteel,
+        governingSteel: governingSteel,
+        
+        // Reinforcement
+        mainBarConfiguration: `${numberOfMainBars} bars of ${mainBarDiameter}mm @ ${mainBarSpacing.toFixed(0)} mm c/c`,
+        horizontalBarConfiguration: `${horizontalBarDiameter}mm @ ${horizontalBarSpacing.toFixed(0)} mm c/c`,
+        
+        // Design Checks
+        shearStress: shearStress,
+        permissibleShearStress: permissibleShearStress,
+        boundaryElementRequired: boundaryElementRequired,
+        
+        // Overall Status
+        designStatus: depthCheck && shearCheck && aspectRatioCheck && deflectionCheck && axialCheck ? 'Pass' : 'Fail'
+      },
+      
+      // Additional data
+      calculationSteps: calculationSteps,
+      designSummary: designSummary
     });
 
     // Save to database
@@ -476,7 +498,14 @@ export const createShearWallDesign = async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Shear wall design completed successfully',
-      data: savedDesign
+      data: {
+        designId: savedDesign._id,
+        shearWallId: savedDesign.shearWallId,
+        designSummary: savedDesign.designSummary,
+        calculationSteps: savedDesign.calculationSteps,
+        inputParameters: savedDesign.inputParameters,
+        calculatedResults: savedDesign.calculatedResults
+      }
     });
 
   } catch (error) {

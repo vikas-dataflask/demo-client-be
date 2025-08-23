@@ -391,53 +391,67 @@ export const createStaircaseDesign = async (req, res) => {
       projectId: projectId,
       userId: userId,
       
-      // Input parameters
-      staircaseType,
-      totalVerticalRise,
-      risePerStep,
-      tread,
-      floorToFloorHeight,
-      spanOfStair,
-      widthOfStair,
-      waistThickness,
-      liveLoad: liveLoad || 3.0,
-      finishesLoad: finishesLoad || 1.0,
-      concreteGrade,
-      steelGrade,
-      clearCover,
-      mainBarDiameter,
-      distributionBarDiameter,
+      // Required staircaseId
+      staircaseId: `STAIR_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       
-      // Calculated results
-      numberOfSteps,
-      totalGoing,
-      inclinationAngle,
-      deadLoadPerMeter,
-      liveLoadPerMeter,
-      factoredLoad,
-      bendingMoment,
-      shearForce,
-      effectiveDepth,
-      requiredSteelArea,
-      providedSteelArea,
-      numberOfMainBars,
-      mainBarSpacing,
-      distributionSteelArea,
-      numberOfDistributionBars,
-      distributionBarSpacing,
+      // Input parameters (nested object as per model schema)
+      inputParameters: {
+        staircaseType: inputData.staircaseType,
+        floorHeight: inputData.floorHeight,                    // Use original frontend field names
+        riserHeight: inputData.riserHeight,
+        treadWidth: inputData.treadWidth,
+        stairWidth: inputData.stairWidth,
+        landingWidth: inputData.landingWidth,
+        liveLoad: inputData.liveLoad,
+        floorFinishLoad: inputData.floorFinishLoad,
+        concreteGrade: inputData.concreteGrade,
+        steelGrade: inputData.steelGrade,
+        clearCover: inputData.clearCover
+      },
       
-      // Design checks
-      riserTreadCheck,
-      depthCheck,
-      shearCheck,
-      deflectionCheck,
+      // Calculated results (nested object as per model schema)
+      calculatedResults: {
+        // Material Properties
+        fck: fck,
+        fy: fy,
+        
+        // Stair Dimensions
+        numberOfSteps: numberOfSteps,
+        totalGoing: totalGoing,
+        inclinationAngle: inclinationAngle,
+        
+        // Loads
+        deadLoadPerMeter: deadLoadPerMeter,
+        liveLoadPerMeter: liveLoadPerMeter,
+        factoredLoad: factoredLoad,
+        
+        // Structural Analysis
+        bendingMoment: bendingMoment,
+        shearForce: shearForce,
+        effectiveDepth: effectiveDepth,
+        
+        // Reinforcement
+        requiredSteelArea: requiredSteelArea,
+        providedSteelArea: providedSteelArea,
+        numberOfMainBars: numberOfMainBars,
+        mainBarSpacing: mainBarSpacing,
+        distributionSteelArea: distributionSteelArea,
+        numberOfDistributionBars: numberOfDistributionBars,
+        distributionBarSpacing: distributionBarSpacing,
+        
+        // Design Checks
+        riserTreadCheck: riserTreadCheck,
+        depthCheck: depthCheck,
+        shearCheck: shearCheck,
+        deflectionCheck: deflectionCheck,
+        
+        // Overall Status
+        designStatus: riserTreadCheck && depthCheck && shearCheck && deflectionCheck ? 'Pass' : 'Fail'
+      },
       
       // Additional data
-      calculationSteps,
-      designSummary,
-      
-      createdAt: new Date(),
-      updatedAt: new Date()
+      calculationSteps: calculationSteps,
+      designSummary: designSummary
     });
 
     // Save to database
@@ -449,25 +463,11 @@ export const createStaircaseDesign = async (req, res) => {
       message: 'Staircase design created successfully',
       data: {
         designId: staircaseDesign._id,
+        staircaseId: staircaseDesign.staircaseId,
         designSummary,
         calculationSteps,
-        inputParameters: {
-          staircaseType,
-          totalVerticalRise,
-          risePerStep,
-          tread,
-          floorToFloorHeight,
-          spanOfStair,
-          widthOfStair,
-          waistThickness,
-          liveLoad: liveLoad || 3.0,
-          finishesLoad: finishesLoad || 1.0,
-          concreteGrade,
-          steelGrade,
-          clearCover,
-          mainBarDiameter,
-          distributionBarDiameter
-        }
+        inputParameters: staircaseDesign.inputParameters,
+        calculatedResults: staircaseDesign.calculatedResults
       }
     });
 

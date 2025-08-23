@@ -1,42 +1,43 @@
 import express from "express";
 import verifyToken from "../middlewares/authMiddleware.js";
-import { 
-  calculateSlabDesign, 
-  getSlabDesign, 
-  getProjectSlabDesigns 
+
+import {
+  calculateSlabDesign,
+  getSlabDesign,
+  getProjectSlabDesigns,
 } from "../controllers/structure/slabController.js";
-import { 
-  calculateBeamDesign, 
-  getBeamDesign, 
-  getProjectBeamDesigns 
+import {
+  calculateBeamDesign,
+  getBeamDesign,
+  getProjectBeamDesigns,
 } from "../controllers/structure/beamController.js";
-import { 
-  createColumnDesign, 
-  getColumnDesign, 
+import {
+  createColumnDesign,
+  getColumnDesign,
   getProjectColumnDesigns,
   updateColumnDesign,
-  deleteColumnDesign 
+  deleteColumnDesign,
 } from "../controllers/structure/columnController.js";
-import { 
-  createFootingDesign, 
-  getFootingDesign, 
+import {
+  createFootingDesign,
+  getFootingDesign,
   getProjectFootingDesigns,
   updateFootingDesign,
-  deleteFootingDesign 
+  deleteFootingDesign,
 } from "../controllers/structure/footingController.js";
-import { 
-  createStaircaseDesign, 
-  getStaircaseDesign, 
+import {
+  createStaircaseDesign,
+  getStaircaseDesign,
   getProjectStaircaseDesigns,
   updateStaircaseDesign,
-  deleteStaircaseDesign 
+  deleteStaircaseDesign,
 } from "../controllers/structure/staircaseController.js";
-import { 
-  createShearWallDesign, 
-  getProjectShearWallDesigns, 
+import {
+  createShearWallDesign,
+  getProjectShearWallDesigns,
   getShearWallDesign,
   updateShearWallDesign,
-  deleteShearWallDesign 
+  deleteShearWallDesign,
 } from "../controllers/structure/shearWallController.js";
 
 const router = express.Router();
@@ -46,38 +47,62 @@ const router = express.Router();
 // Slab Design Routes
 router.post("/slab-design", verifyToken, calculateSlabDesign);
 router.get("/slab-design/:designId", verifyToken, getSlabDesign);
-router.get("/project/:projectId/slab-designs", verifyToken, getProjectSlabDesigns);
+router.get(
+  "/project/:projectId/slab-designs",
+  verifyToken,
+  getProjectSlabDesigns
+);
 
 // Beam Design Routes
 router.post("/beam-design", verifyToken, calculateBeamDesign);
 router.get("/beam-design/:designId", verifyToken, getBeamDesign);
-router.get("/project/:projectId/beam-designs", verifyToken, getProjectBeamDesigns);
+router.get(
+  "/project/:projectId/beam-designs",
+  verifyToken,
+  getProjectBeamDesigns
+);
 
 // Column Design Routes
 router.post("/column-design", verifyToken, createColumnDesign);
 router.get("/column-design/:id", verifyToken, getColumnDesign);
-router.get("/project/:projectId/column-designs", verifyToken, getProjectColumnDesigns);
+router.get(
+  "/project/:projectId/column-designs",
+  verifyToken,
+  getProjectColumnDesigns
+);
 router.put("/column-design/:id", verifyToken, updateColumnDesign);
 router.delete("/column-design/:id", verifyToken, deleteColumnDesign);
 
 // Footing Design Routes
 router.post("/footing-design", verifyToken, createFootingDesign);
 router.get("/footing-design/:id", verifyToken, getFootingDesign);
-router.get("/project/:projectId/footing-designs", verifyToken, getProjectFootingDesigns);
+router.get(
+  "/project/:projectId/footing-designs",
+  verifyToken,
+  getProjectFootingDesigns
+);
 router.put("/footing-design/:id", verifyToken, updateFootingDesign);
 router.delete("/footing-design/:id", verifyToken, deleteFootingDesign);
 
 // Staircase Design Routes
 router.post("/staircase-design", verifyToken, createStaircaseDesign);
 router.get("/staircase-design/:id", verifyToken, getStaircaseDesign);
-router.get("/project/:projectId/staircase-designs", verifyToken, getProjectStaircaseDesigns);
+router.get(
+  "/project/:projectId/staircase-designs",
+  verifyToken,
+  getProjectStaircaseDesigns
+);
 router.put("/staircase-design/:id", verifyToken, updateStaircaseDesign);
 router.delete("/staircase-design/:id", verifyToken, deleteStaircaseDesign);
 
 // Shear Wall Design Routes
 router.post("/shear-wall-design", verifyToken, createShearWallDesign);
 router.get("/shear-wall-design/:id", verifyToken, getShearWallDesign);
-router.get("/project/:projectId/shear-wall-designs", verifyToken, getProjectShearWallDesigns);
+router.get(
+  "/project/:projectId/shear-wall-designs",
+  verifyToken,
+  getProjectShearWallDesigns
+);
 router.put("/shear-wall-design/:id", verifyToken, updateShearWallDesign);
 router.delete("/shear-wall-design/:id", verifyToken, deleteShearWallDesign);
 
@@ -88,8 +113,8 @@ router.get("/slab", verifyToken, (req, res) => {
     message: "Slab design endpoint - use /slab-design for calculations",
     data: {
       type: "slab-design",
-      status: "ready"
-    }
+      status: "ready",
+    },
   });
 });
 
@@ -102,8 +127,8 @@ router.get("/beam", verifyToken, (req, res) => {
     message: "Beam design endpoint - use /beam-design for calculations",
     data: {
       type: "beam-design",
-      status: "ready"
-    }
+      status: "ready",
+    },
   });
 });
 
@@ -116,8 +141,8 @@ router.get("/column", verifyToken, (req, res) => {
     message: "Column design endpoint - use /column-design for calculations",
     data: {
       type: "column-design",
-      status: "ready"
-    }
+      status: "ready",
+    },
   });
 });
 
@@ -130,8 +155,8 @@ router.get("/footing", verifyToken, (req, res) => {
     message: "Footing design endpoint - use /footing-design for calculations",
     data: {
       type: "footing-design",
-      status: "ready"
-    }
+      status: "ready",
+    },
   });
 });
 
@@ -141,11 +166,12 @@ router.post("/footing", verifyToken, createFootingDesign);
 router.get("/staircase", verifyToken, (req, res) => {
   res.json({
     success: true,
-    message: "Staircase design endpoint - use /staircase-design for calculations",
+    message:
+      "Staircase design endpoint - use /staircase-design for calculations",
     data: {
       type: "staircase-design",
-      status: "ready"
-    }
+      status: "ready",
+    },
   });
 });
 
@@ -155,14 +181,15 @@ router.post("/staircase", verifyToken, createStaircaseDesign);
 router.get("/shearwall", verifyToken, (req, res) => {
   res.json({
     success: true,
-    message: "Shear wall design endpoint - use /shear-wall-design for calculations",
+    message:
+      "Shear wall design endpoint - use /shear-wall-design for calculations",
     data: {
       type: "shear-wall-design",
-      status: "ready"
-    }
+      status: "ready",
+    },
   });
 });
 
 router.post("/shearwall", verifyToken, createShearWallDesign);
 
-export default router; 
+export default router;
